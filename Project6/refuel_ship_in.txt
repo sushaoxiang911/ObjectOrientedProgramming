@@ -1,0 +1,132 @@
+1
+0
+Refuel_ship_test
+Exxon 10 10
+Shell 0 30
+Bermuda 20 20
+Treasure_Island 50 5
+// create Refuel_ship
+create Ajax Cruiser 15 15
+create Xerxes Cruiser 25 25
+create Ace Refuel_ship 1.1 1.1
+Ajax position 60 60 20
+Ace load_at Exxon
+go
+go
+go
+go
+// Ajax arrive
+Ajax position -10 -10 20
+go
+go
+go
+// Ajax DEAD_IN_WATER, let Ace go to rescue
+Ace set_terminus 30 30
+go
+go
+go
+go
+go
+// Ace arrive, status changes to REFUEL_SHIP
+status
+go
+// REFUEL_SHIP finishes, Ace goes back, Ajax STOPPED
+status
+go
+go
+
+// Ajax moves
+Ajax position 90.29 34.29 20
+go
+go
+go
+// Ajax moves back
+Ajax position 30 30 20
+go
+go
+go
+// Ajax dead, Ace doesn't perceive Ajax
+status
+go
+// Ace perceives Ajax
+status
+go
+go
+// Ace arrives at Ajax and refuels it
+status
+go
+go
+go
+go
+go
+go
+go
+
+// Ace arrives at Exxon
+go
+go
+go
+go
+// Ace arrives at 30 30
+Ace stop
+// clear Ace path
+create Zorro Tanker 30 30
+// create a Zorro which is a tanker
+Zorro position 60 30 10
+Xerxes position 80 25 20
+Ajax position 85 31.17 20
+go
+go
+go
+go
+// all of them are stopped
+Zorro position 0 30 10
+Xerxes position 0 25 20
+Ajax position 0 31.17 20
+go
+go
+go
+go
+go
+// all of them are dead
+Ace load_at Exxon
+// Ace set new path
+status
+go
+// move to Ajax
+status
+go
+// refuel Ajax
+status
+go
+// move to Exxon
+status
+go
+// move to Xerxers
+status
+go
+go
+// refuel Xerxers
+go
+// move to Exxon
+status
+go
+// move to Exxon, Zorro still dead in water since Ace has empty depot
+status
+go
+go
+go
+status
+go
+// Ace gets refilled
+go
+go
+// move to Zorro, wanting to refuel it
+status
+Xerxes attack Zorro
+status
+go
+status
+go
+status
+quit

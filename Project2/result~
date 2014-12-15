@@ -1,0 +1,97 @@
+Thing 1 with ID 101 constructed
+Thing 2 with ID 102 constructed
+Thing 3 with ID 103 constructed
+Thing 4 with ID 104 constructed
+Thing 5 with ID 105 constructed
+
+Demonstrate exception safety on insert
+Thing 6 with ID 101 copy constructed
+Thing 7 with ID 102 copy constructed
+thing_list after first insertions has 2 items: Thing6-101 Thing7-102
+Attempt thing_list.insert(t3);
+Attempt to copy construct Thing 8 with ID 103 failed!!!
+Thing_exception caught:Boom!
+thing_list after exception caught: has 2 items: Thing6-101 Thing7-102
+not damaged by failed insertion and no debris left over
+leaving local scope
+Thing 6 with ID 101 destroyed
+Thing 7 with ID 102 destroyed
+
+Demonstrate exception safety on list copy construction
+Thing 8 with ID 101 copy constructed
+Thing 9 with ID 102 copy constructed
+Thing 10 with ID 103 copy constructed
+thing_list after insertions has 3 items: Thing8-101 Thing9-102 Thing10-103
+Attempt copy construction: Thing_list_t thing_list2(thing_list);
+Thing 11 with ID 101 copy constructed
+Thing 12 with ID 102 copy constructed
+Attempt to copy construct Thing 13 with ID 103 failed!!!
+Thing 11 with ID 101 destroyed
+Thing 12 with ID 102 destroyed
+Thing_exception caught:Boom!
+thing_list2 failed construction and does not exist - all debris cleaned up
+leaving local scope
+Thing 8 with ID 101 destroyed
+Thing 9 with ID 102 destroyed
+Thing 10 with ID 103 destroyed
+
+Demonstrate exception safety on list copy assignment
+Thing 13 with ID 101 copy constructed
+Thing 14 with ID 102 copy constructed
+Thing 15 with ID 103 copy constructed
+thing_list1 after insertions has 3 items: Thing13-101 Thing14-102 Thing15-103
+Thing 16 with ID 104 copy constructed
+Thing 17 with ID 105 copy constructed
+thing_list2 after insertions has 2 items: Thing16-104 Thing17-105
+Attempt thing_list1 = thing_list2;
+Thing 18 with ID 104 copy constructed
+Attempt to copy construct Thing 19 with ID 105 failed!!!
+Thing 18 with ID 104 destroyed
+Thing_exception caught:Boom!
+thing_list1 is unchanged has 3 items: Thing13-101 Thing14-102 Thing15-103
+thing_list2 is unchanged has 2 items: Thing16-104 Thing17-105
+no debris left over
+leaving local scope
+Thing 16 with ID 104 destroyed
+Thing 17 with ID 105 destroyed
+Thing 13 with ID 101 destroyed
+Thing 14 with ID 102 destroyed
+Thing 15 with ID 103 destroyed
+
+Demonstrate list move construction
+Thing 19 with ID 101 copy constructed
+Thing 20 with ID 102 copy constructed
+Thing 21 with ID 103 copy constructed
+thing_list after insertions has 3 items: Thing19-101 Thing20-102 Thing21-103
+Attempt move construction: Thing_list_t thing_list2(std::move(thing_list));
+thing_list after move construction has 0 items:
+thing_list2 after move construction has 3 items: Thing19-101 Thing20-102 Thing21-103
+leaving local scope
+Thing 19 with ID 101 destroyed
+Thing 20 with ID 102 destroyed
+Thing 21 with ID 103 destroyed
+
+Demonstrate list move assignment
+Thing 22 with ID 101 copy constructed
+Thing 23 with ID 102 copy constructed
+Thing 24 with ID 103 copy constructed
+thing_list1 after insertions has 3 items: Thing22-101 Thing23-102 Thing24-103
+Thing 25 with ID 104 copy constructed
+Thing 26 with ID 105 copy constructed
+thing_list2 after insertions has 2 items: Thing25-104 Thing26-105
+Attempt thing_list1 = std::move(thing_list2);
+thing_list1 has 2 items: Thing25-104 Thing26-105
+thing_list2 has 3 items: Thing22-101 Thing23-102 Thing24-103
+leaving local scope
+Thing 22 with ID 101 destroyed
+Thing 23 with ID 102 destroyed
+Thing 24 with ID 103 destroyed
+Thing 25 with ID 104 destroyed
+Thing 26 with ID 105 destroyed
+leaving main
+Thing 5 with ID 105 destroyed
+Thing 4 with ID 104 destroyed
+Thing 3 with ID 103 destroyed
+Thing 2 with ID 102 destroyed
+Thing 1 with ID 101 destroyed
+Done!

@@ -1,0 +1,680 @@
+#include "Ordered_container.h"
+#include "Record.h"
+#include <stdio.h>
+#include "Collection.h"
+#include <string.h>
+#include "Utility.h"
+#include "p1_globals.h"
+
+int id_comp_fun(const struct Record* record1, const struct Record* record2);
+
+int id_arg_comp_fun(const int* id, const struct Record* record);
+
+int title_available(char* buf);
+
+int name_comp_fun(const struct Collection* collection1, const struct Collection* conllection2);
+
+int name_arg_comp_fun(const char* name, const struct Collection* collection);
+
+int has_member (struct Collection* collection);
+
+void print_error_message(int code);
+
+void unrecognized_command();
+
+void print_record_title(struct Ordered_container* title_library);
+
+void print_record_id(struct Ordered_container* id_library);
+
+void print_collection(struct Ordered_container* catalog);
+
+void print_library(struct Ordered_container* title_library);
+
+void print_catalog(struct Ordered_container* catalog);
+
+void print_allocation(struct Ordered_container* title_library, struct Ordered_container* id_library);
+
+void add_record(struct Ordered_container* title_library, struct Ordered_container* id_library);
+
+void add_collection(struct Ordered_container* catalog);
+
+void add_record_to_collection(struct Ordered_container* catalog, struct Ordered_container* id_library);
+
+void modify_record_rating(struct Ordered_container* id_library);
+
+void delete_record_from_library(struct Ordered_container* title_library, struct Ordered_container* id_library, struct Ordered_container* catalog);
+
+void delete_collection_from_catalog(struct Ordered_container* catalog);
+
+void delete_record_from_collection(struct Ordered_container* catalog, struct Ordered_container* id_library);
+
+void save_all(struct Ordered_container* title_library, struct Ordered_container* catalog);
+
+void restore_all(struct Ordered_container* title_library, struct Ordered_container* id_library, struct Ordered_container* catalog);
+
+void quit(struct Ordered_container* title_library, struct Ordered_container* id_library, struct Ordered_container* catalog);
+
+int main () {
+
+    struct Ordered_container *id_library = OC_create_container((OC_comp_fp_t)id_comp_fun);
+    struct Ordered_container *title_library = OC_create_container((OC_comp_fp_t)title_comp_fun);
+    struct Ordered_container *catalog = OC_create_container((OC_comp_fp_t)name_comp_fun);    
+
+    char action;
+    char object;
+
+    while(1) {
+        printf("\nEnter command: ");
+        scanf(" %c", &action);
+        scanf(" %c", &object);
+        switch (action) {
+            case 'f':
+                switch (object) {
+                    case 'r':
+                       	print_record_title(title_library);
+                        break;
+                    default:
+                        unrecognized_command();
+                        break;  
+                }    
+                break;
+            case 'p':
+                switch(object) {
+                    case 'r':
+                        print_record_id(id_library);
+                        break;
+                    case 'c':
+                        print_record_id(id_library);
+                        break;
+                    case 'L':
+                        print_library(title_library);
+                        break;
+                    case 'C':
+                        print_catalog(catalog);
+                        break;
+                    case 'a':
+                        print_allocation(title_library, id_library);
+                        break;
+                    default:
+                        unrecognized_command();
+                        break;
+                }
+                break;
+            case 'a':
+                switch(object) {
+                    case 'r':
+                        add_record(title_library, id_library);
+                        break;
+                    case 'c':
+                       	add_collection(catalog);
+                        break;
+                    case 'm':
+                        add_record_to_collection(catalog, id_library);
+                        break;
+                    default:
+                        unrecognized_command();
+                        break;
+                }
+                break;
+            case 'm':
+                switch(object) {
+                    case 'r':
+                        modify_record_rating(id_library);
+                        break;
+                    default:
+                        unrecognized_command();
+                        break;
+                }
+                break;
+            case 'd':
+                switch (object) {
+                    case 'r':
+                        delete_record_from_library(title_library, id_library, catalog);
+                        break;
+                    case 'c':
+                        delete_collection_from_catalog(catalog);
+                        break;
+                    case 'm':
+                        delete_record_from_collection(catalog, id_library);
+                        break;
+                    default:
+                        unrecognized_command();
+                        break;
+                }
+                break;
+            case 'c':
+                switch (object) {
+                    case 'L':
+                        if (clear_library(title_library, id_library, catalog))
+                        printf("All records deleted\n");
+                        break;
+                    case 'C':
+                        clear_catalog(catalog);
+                        printf("All collections deleted\n");
+                        break;
+                    case 'A':
+                        clear_all(catalog, title_library, id_library);
+                        printf("All data deleted\n");
+                        break;
+                    default:
+                        unrecognized_command();
+                        break;
+                }
+                break;
+            case 's':
+                switch(object) {
+                    case 'A':
+                        save_all(title_library, catalog);
+                        break;
+                    default:
+                        unrecognized_command();
+                        break;
+                }
+                break;
+            case 'r':
+                switch(object) {
+                    case 'A':
+                        restore_all(title_library, id_library, catalog);
+                        break;
+                    default:
+                        unrecognized_command();
+                        break;
+                }
+                break;
+            case 'q':
+                switch(object) {
+                    case 'q':
+                        quit(title_library, id_library, catalog);
+                        return 0;
+                    default:
+                        unrecognized_command();
+                        break;
+                }
+                break;
+            default:
+                unrecognized_command();
+                break;
+        }
+    }
+    return 0;
+}
+
+int id_comp_fun(const struct Record* record1, const struct Record* record2)
+{
+    return get_Record_ID(record1) - get_Record_ID(record2);
+}
+
+int id_arg_comp_fun(const int* id, const struct Record* record)
+{
+    return *id - get_Record_ID(record);
+}
+
+int title_available(char* buf)
+{
+    if (strlen(buf) > 0)
+        return 1;
+    else {
+        print_error_message(TITLE_ERROR);
+        return 0;
+    }
+}
+
+int name_comp_fun(const struct Collection* collection1, const struct Collection* collection2)
+{
+    return strcmp(get_Collection_name(collection1), get_Collection_name(collection2));
+}
+int name_arg_comp_fun(const char* name, const struct Collection* collection)
+{
+    return strcmp(name, get_Collection_name(collection));
+}
+
+int has_member(struct Collection* collection)
+{
+    return !Collection_empty(collection);
+}
+
+void read_filename(char* buf)
+{
+    memset(buf, 0, FILE_BUF_SIZE);
+    scanf("%31s", buf);
+}
+
+void print_error_message(int code)
+{
+    switch (code) {
+        case COMMAND_ERROR:
+            printf("Unrecognized command!\n");
+            break;
+        case TITLE_ERROR:
+            printf("Could not read a title!\n");
+            break;
+        case TITLE_NO_FOUND:
+            printf("No record with that title!\n");
+            break;
+        case NUMBER_ERROR:
+            printf("Could not read an integer value!\n");
+            break;
+        case ID_NO_FOUND:
+            printf("No record with that ID!\n");
+            break;
+        case NAME_NO_FOUND:
+            printf("No collection with that name!\n");
+            break;
+        case TITLE_EXIST:
+            printf("Library already has a record with this title!\n");
+            break;
+        case NAME_EXIST:
+            printf("Catalog already has a collection with this name!\n");
+            break;
+        case MEMBER_PRESENT:
+            printf("Record is already a member in the collection!\n");
+            break;
+        case RATING_OUT_OF_RANGE:
+            printf("Rating is out of range!\n");
+            break;
+        case RECORD_IN_COLLECTION:
+            printf("Cannot delete a record that is a member of a collection!\n");
+            break;
+        case RECORD_NOT_MEMBER:
+            printf("Record is not a member in the collection!\n");
+            break;
+        case COLLECTION_NOT_EMPTY:
+            printf("Cannot clear all records unless all collections are empty!\n");
+            break;
+        case FILE_ERROR:
+            printf("Could not open file!\n");
+            break;
+        case INVALID_FILE_DATA:
+            printf("Invalid data found in file!\n");
+            break;
+        default:
+            printf("Wrong code!\n");
+            break;
+    }
+}
+
+void unrecognized_command()
+{
+    print_error_message(COMMAND_ERROR);
+    read_to_newline(stdin);
+}
+
+void print_record_title(struct Ordered_container* title_library)
+{
+	title_buf[TITLE_BUF_SIZE];
+	struct Record* record_found;
+	read_title(title_buf, stdin);
+    if (title_available(title_buf)) {
+        record_found = get_data_pointer(title_library, 
+                title_buf, (OC_find_item_arg_fp_t)title_arg_comp_fun);
+        if (record_found == NULL){
+            print_error_message(TITLE_NO_FOUND);
+            return;
+        }
+        print_Record(record_found);                       
+    }
+}
+
+void print_record_id(struct Ordered_container* id_library)
+{
+	int number;
+	struct Record* record_found;
+	if (!scanf("%d", &number)){
+        print_error_message(NUMBER_ERROR);
+        read_to_newline(stdin);
+        return;
+    }
+    record_found = get_data_pointer(id_library, &number, 
+                            (OC_find_item_arg_fp_t)id_arg_comp_fun);
+    if (record_found == NULL) {
+        print_error_message(ID_NO_FOUND);
+        read_to_newline(stdin);
+        return;
+    }
+    print_Record(record_found);
+}
+
+void print_collection(struct Ordered_container* catalog)
+{
+	char name_buf[NAME_BUF_SIZE];
+	struct Collection* collection_found;
+	read_name(name_buf, stdin);
+    collection_found = get_data_pointer(catalog, name_buf,
+                                (OC_find_item_arg_fp_t)name_arg_comp_fun);
+    if (collection_found == NULL) {
+        print_error_message(NAME_NO_FOUND);
+        read_to_newline(stdin);
+        return;
+    }
+    print_Collection(collection_found);
+}
+
+void print_library(struct Ordered_container* title_library)
+{
+	if (OC_empty(title_library))
+        printf("Library is empty\n");
+    else {
+        printf("Library contains %d records:\n", OC_get_size(title_library));
+	    OC_apply(title_library, (OC_apply_fp_t)print_Record);
+	}
+}
+
+void print_catalog(struct Ordered_container* catalog)
+{
+	if (OC_empty(catalog))
+        printf("Catalog is empty\n");
+    else {
+        printf("Catalog contains %d collections:\n", OC_get_size(catalog));
+        OC_apply(catalog, (OC_apply_fp_t)print_Collection);
+    }
+}
+
+void print_allocation(struct Ordered_container* title_library, struct Ordered_container* id_library)
+{
+	printf("Memory allocations:\n");
+    printf("Records: %d\n", OC_get_size(title_library));
+    printf("Collections: %d\n", OC_get_size(catalog));
+    printf("Containers: %d\n", g_Container_count);
+    printf("Container items in use: %d\n", g_Container_items_in_use);
+    printf("Container items allocated: %d\n", g_Container_items_allocated);
+    printf("C-strings: %d bytes total\n", g_string_memory);
+}
+
+void add_record(struct Ordered_container* title_library, struct Ordered_container* id_library)
+{
+	char medium_buf[MEDIUM_BUF_SIZE];
+	char title_buf[TITLE_BUF_SIZE];
+	struct Record* record;
+	read_medium(medium_buf, stdin);
+    read_title(title_buf, stdin);
+    if (title_available(title_buf)) {
+        record = get_data_pointer(title_library, 
+        	title_buf, (OC_find_item_arg_fp_t)title_arg_comp_fun);
+    	if (record != NULL) {
+        	print_error_message(TITLE_EXIST);
+        	return;
+        }
+        struct Record* record = create_Record(medium, title);
+    	OC_insert(id_library, record);
+    	OC_insert(title_library, record);
+    	printf("Record %d added\n", get_Record_ID(record));	
+    }
+}
+
+void add_collection(struct Ordered_container* catalog)
+{
+	char name_buf[NAME_BUF_SIZE];
+	struct Collection* collection;
+	read_name(name_buf, stdin);
+    collection = get_data_pointer(catalog, name_buf, 
+       			             (OC_find_item_arg_fp_t)name_arg_comp_fun);
+    if (collection != NULL){
+       	print_error_message(NAME_EXIST);
+	   	read_to_newline(stdin);
+	   	return;
+    }
+    collection = create_Collection(name_buf);
+    OC_insert(catalog, collection);
+    printf("Collection %s added\n", get_Collection_name(collection));	
+}
+
+
+void add_record_to_collection(struct Ordered_container* catalog, struct Ordered_container* id_library)
+{
+	char name_buf[NAME_BUF_SIZE];
+	int number;
+	struct Collection* collection;
+	struct Record* record;
+	read_name(name_buf, stdin);
+    collection = get_data_pointer(catalog, name_buf,
+			                (OC_find_item_arg_fp_t)name_arg_comp_fun);
+    if (collection == NULL) {
+        print_error_message(NAME_NO_FOUND);
+        read_to_newline(stdin);
+        return;
+    }
+    if (!scanf("%d", &number)) {
+        print_error_message(NUMBER_ERROR);
+        read_to_newline(stdin);
+        return;
+    }
+    record = get_data_pointer(id_library, &number, 
+		       			(OC_find_item_arg_fp_t)id_arg_comp_fun);
+    if (record == NULL) {
+        print_error_message(ID_NO_FOUND);
+        read_to_newline(stdin);
+        return;
+    }
+    if (add_Collection_member(collection, record)) {
+        print_error_message(MEMBER_PRESENT);
+        read_to_newline(stdin);
+        return;
+    }
+    printf("Member %d %s added\n", get_Record_ID(record), get_Record_title(record));
+}
+
+void modify_record_rating(struct Ordered_container* id_library)
+{
+	int number;
+	struct Record* record;
+	if (!scanf("%d", &number)) {
+        print_error_message(NUMBER_ERROR);
+        read_to_newline(stdin);
+        return;
+    }
+    record_found = get_data_pointer(id_library, &number, 
+                            (OC_find_item_arg_fp_t)id_arg_comp_fun);
+    if (record == NULL){
+        read_to_newline(stdin);
+        print_error_message(ID_NO_FOUND);
+        return;
+    }
+    if (!scanf("%d", &number)) {
+        print_error_message(NUMBER_ERROR);
+        read_to_newline(stdin);
+        return;
+    }
+    if (number < 1 || number > 5) {
+        print_error_message(RATING_OUT_OF_RANGE);
+        read_to_newline(stdin);
+        return;
+    }
+    set_Record_rating(record, number);
+    printf("Rating for record %d changed to %d\n", 
+                                get_Record_ID(record), number);
+}
+
+void delete_record_from_library(struct Ordered_container* title_library, 
+					struct Ordered_container* id_library, struct Ordered_container* catalog)
+{
+	char title_buf[TITLE_BUF_SIZE];
+	struct Record* record;
+	read_title(title_buf, stdin);
+    if (!title_available(title_buf))
+        return;
+    record = get_data_pointer(title_library, title_buf,
+    (OC_find_item_arg_fp_t)title_arg_comp_fun);
+    if (record == NULL) {
+        print_error_message(TITLE_NO_FOUND);
+        return;
+    }
+    if (OC_apply_if_arg(catalog, (OC_apply_if_arg_fp_t)
+    								is_Collection_member_present, record)) {
+        print_error_message(RECORD_IN_COLLECTION);
+        return;
+    }
+    printf("Record %d %s deleted\n", get_Record_ID(record), get_Record_title(record));
+    OC_delete_item(title_library, OC_find_item(title_library, record));
+    OC_delete_item(id_library, OC_find_item(id_library, record));
+    destroy_Record(record);
+}
+
+void delete_collection_from_catalog(struct Ordered_container* catalog)
+{
+	char name_buf[NAME_BUF_SIZE];
+	struct Collection* collection;
+	read_name(name_buf, stdin);
+    collection = get_data_pointer(catalog, name_buf,
+			                (OC_find_item_arg_fp_t)name_arg_comp_fun);
+    if (collection == NULL) {
+        read_to_newline(stdin);
+        print_error_message(NAME_NO_FOUND);
+        return;
+    }
+    printf("Collection %s deleted\n", get_Collection_name(collection));
+    OC_delete_item(catalog, OC_find_item(catalog, collection));
+    destroy_Collection(collection);
+}
+
+
+void delete_record_from_collection(struct Ordered_container* catalog, struct Ordered_container* id_library)
+{
+	char name_buf[NAME_BUF_SIZE];
+	int number;
+	struct Collection* collection;
+	struct Record* record;
+	read_name(name_buf, stdin);
+    collection = get_data_pointer(catalog, name_buf, 
+		                    (OC_find_item_arg_fp_t)name_arg_comp_fun);
+    if (collection == NULL){
+        read_to_newline(stdin);
+        print_error_message(NAME_NO_FOUND);
+        return;
+    }
+    if (!scanf("%d", &number)) {
+        print_error_message(NUMBER_ERROR);
+        read_to_newline(stdin);
+        return;
+    }
+    record = get_data_pointer(id_library, &number,
+				            (OC_find_item_arg_fp_t)id_arg_comp_fun);
+    if (record == NULL) {
+        read_to_newline(stdin);
+        print_error_message(ID_NO_FOUND);
+        return;
+    }
+	if (is_Collection_member_present(collection, record)) {
+        printf("Member %d %s deleted\n", get_Record_ID(record), get_Record_title(record));
+        remove_Collection_member(collection, record);
+    } else {
+        print_error_message(RECORD_NOT_MEMBER);
+        read_to_newline(stdin);
+    }
+
+}
+
+int clear_library (struct Ordered_container* title_library, 
+				struct Ordered_container* id_library, struct Ordered_container* catalog)
+{
+    if (OC_apply_if(catalog, (OC_apply_if_fp_t)has_member)) {
+        print_error_message(COLLECTION_NOT_EMPTY);
+        read_to_newline(stdin);
+        return 0;
+    } else {
+        OC_apply(title_library, (OC_apply_fp_t)destroy_Record);
+        OC_clear(title_library);
+        OC_clear(id_library);
+        reset_Record_ID_counter();
+        return 1;
+    }
+}
+
+void clear_catalog(struct Ordered_container* catalog)
+{
+    OC_apply(catalog, (OC_apply_fp_t)destroy_Collection);
+    OC_clear(catalog);
+}
+
+void clear_all(struct Ordered_container* catalog, 
+			struct Ordered_container* title_library, struct Ordered_container* id_library)
+{
+    clear_catalog(catalog);
+    clear_library(title_library, id_library, catalog);
+}
+
+void save_all(struct Ordered_container* title_library, struct Ordered_container* catalog)
+{
+	char file_buf[FILE_BUF_SIZE];
+	FILE* file;
+	int number;
+	read_filename(file_buf);
+    file = fopen(file_buf, "w");
+    if (file == NULL) {
+        read_to_newline(stdin);
+        print_error_message(FILE_ERROR);
+        return;
+    }
+    number = OC_get_size(title_library);
+    fprintf(file, "%d\n", number);
+    OC_apply_arg(title_library, (OC_apply_arg_fp_t)save_Record, file);
+    number = OC_get_size(catalog);
+    fprintf(file, "%d\n", number);
+    OC_apply_arg(catalog, (OC_apply_arg_fp_t)save_Collection, file);
+    printf("Data saved\n");
+    fclose(file);
+}
+
+int read_data_from_file (FILE* file, struct Ordered_container *title_library, struct Ordered_container *id_library, struct Ordered_container *catalog)
+{
+    int number;
+    int i;
+    struct Record* record;
+    struct Collection* collection;
+    if (!fscanf(file, "%d", &number)) {
+        return 0;
+    }
+    for (i = 0; i < number; i++) {
+        record = load_Record(file);
+        if (record == NULL) {
+            return 0;
+        }
+        OC_insert(title_library, record);
+        OC_insert(id_library, record);
+    }
+    if (!fscanf(file, "%d", &number)) {
+        return 0;
+    }
+    for (i = 0; i < number; i++) {
+        collection = load_Collection(file, title_library);
+        if (collection == NULL){
+            return 0;
+        }
+        OC_insert(catalog, collection);
+    }
+    return 1;
+}
+
+void restore_all(struct Ordered_container* title_library, 
+			struct Ordered_container* id_library, struct Ordered_container* catalog)
+{
+	char file_buf[FILE_BUF_SIZE];
+	FILE* file;
+	read_filename(file_buf);
+  	file = fopen(file_buf, "r");
+    if (file == NULL) {
+        read_to_newline(stdin);
+        print_error_message(FILE_ERROR);
+        return;
+    }
+    clear_all(catalog, title_library, id_library);
+    if (!read_data_from_file(file, title_library, id_library, catalog)) {
+        read_to_newline(stdin);
+        clear_all(catalog, title_library, id_library);
+        print_error_message(INVALID_FILE_DATA);
+    } else {
+        printf("Data loaded\n");
+    }
+    fclose(file);
+}
+
+void quit(struct Ordered_container* title_library, 
+			struct Ordered_container* id_library, struct Ordered_container* catalog)
+{
+	clear_all(catalog, title_library, id_library);
+    printf("All data deleted\n");
+    OC_destroy_container(catalog);
+    OC_destroy_container(title_library);
+    OC_destroy_container(id_library);
+    printf("Done\n");
+}
+
